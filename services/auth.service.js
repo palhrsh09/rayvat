@@ -9,7 +9,7 @@ const Role = db.role;
 const UserToken = db.userToken
 
 const registerUser = async ({ name, email, password, roleTitle }) => {
-  const role = await Role.findOne({ title: roleTitle || "user", status: "active" });
+  const role = await Role.findOne({ title: roleTitle || "User", status: "active" });
   if (!role) throw new Error("Role not found");
 
   const existingUser = await User.findOne({ email });
@@ -43,7 +43,6 @@ const loginUser = async ({ email, password }, res) => {
   const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   const tokenSignature = await hashText(token.split(".")[2])
-  console.log("🚀 ~ loginUser ~ tokenSignature:", tokenSignature)
 
   await UserToken.findOneAndUpdate(
   { userId: new mongoose.Types.ObjectId(user._id) },

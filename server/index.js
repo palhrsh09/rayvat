@@ -47,7 +47,7 @@ app.use((err, req, res, next) => {
 
 const initializeRoles = async () => {
   const Role = db.role;
-  const requiredRoles = ["admin", "user"];
+  const requiredRoles = ["Admin", "User"];
 
   for (const title of requiredRoles) {
     const exists = await Role.findOne({ title });
