@@ -31,7 +31,7 @@ npm run start
 #### User Registration (Optional)
 You can create a user manually using the following API:
 
-**POST** `/api/auth/register`
+**POST** `/api/v1/register`
 
 **Body:**
 ```json
@@ -46,7 +46,7 @@ You can create a user manually using the following API:
 *If role is not provided, it will default to "user".*
 
 #### User Login
-**POST** `/api/auth/login`
+**POST** `/api/v1/login`
 
 **Body:**
 ```json
