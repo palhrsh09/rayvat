@@ -39,7 +39,7 @@ You can create a user manually using the following API:
   "name": "John Doe",
   "email": "john@example.com",
   "password": "yourpassword",
-  "role": "admin" // optional, defaults to "user"
+  "role": "admin" 
 }
 ```
 
@@ -64,9 +64,3 @@ The app supports basic RBAC:
 
 - **Users** can only view (GET) data
 - **Admins** can perform full CRUD operations based on routes and roles
-
----
-
-### License
-
-This project is licensed under the MIT License.
