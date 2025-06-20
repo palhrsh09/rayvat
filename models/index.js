@@ -21,5 +21,7 @@ db.redis = redisClient;
 db.user = require("./user.model")
 db.role = require("./role.model")
 db.userToken= require('./userToken.model')
+db.events = require("./event.model")
+db.bookings = require("./booking.model")
 
 module.exports = db;

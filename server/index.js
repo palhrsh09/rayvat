@@ -1,16 +1,12 @@
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require("cookie-parser")
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const config = require("../config/app.config");
 const dbConfig = require("../config/db.config");
 const routes = require("../routes");
-const db = require("../models"); 
-// const PubSubClient = require("../services/socket.service");
-
-// global.pubsub = new PubSubClient(process.env.socket_url);
-// global.pubsub.connect().catch(console.error);
+const db = require("../models");
 
 const app = express();
 
@@ -30,7 +26,7 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -49,22 +45,35 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
+const initializeRoles = async () => {
+  const Role = db.role;
+  const requiredRoles = ["admin", "user"];
+
+  for (const title of requiredRoles) {
+    const exists = await Role.findOne({ title });
+    if (!exists) {
+      await Role.create({ title, status: "active" });
+      console.log(`Role '${title}' created`);
+    } else {
+      console.log(`Role '${title}' already exists`);
+    }
+  }
+};
 
 (async () => {
   try {
-    await db.redis.connect(); 
-    console.log("Redis connected successfully.");
-
     await db.mongoose.connect(dbConfig.URI, {
       dbName: dbConfig.DB_NAME,
     });
     console.log("MongoDB connected successfully.");
+
+    await initializeRoles();
 
     app.listen(config.PORT, () => {
       console.log(`Server is running on port ${config.PORT}`);
     });
   } catch (err) {
     console.error("Startup error:", err);
-    process.exit(1); 
+    process.exit(1);
   }
 })();

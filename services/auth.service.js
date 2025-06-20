@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const db = require("../models");
 const { hashText } = require("../utils");
+const mongoose = require("mongoose")
 
 const User = db.user;
 const Role = db.role;
@@ -14,12 +15,10 @@ const registerUser = async ({ name, email, password, roleTitle }) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) throw new Error("User already exists");
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-
   const newUser = new User({
     name,
     email,
-    password: hashedPassword,
+    password,
     roleId: role._id,
   });
 
@@ -43,26 +42,18 @@ const loginUser = async ({ email, password }, res) => {
   const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
   const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  const tokenSignature = await hashText(token.split(".")[2]);
+  const tokenSignature = await hashText(token.split(".")[2])
+  console.log("🚀 ~ loginUser ~ tokenSignature:", tokenSignature)
 
-  await UserToken.create({
-    userId: user._id,
+  await UserToken.findOneAndUpdate(
+  { userId: new mongoose.Types.ObjectId(user._id) },
+  {
     tokenSignature,
     expiredAt: tokenExpiresAt,
-  });
+  },
+  { upsert: true, new: true }
+);
 
-//    const userChannel = `user:${user._id}`;
-
-//   global.pubsub.subscribe(userChannel, (msg) => {
-//     console.log(`[PubSub][${userChannel}]`, msg);
-//   });
-
-//   global.pubsub.publish(userChannel, {
-//     event: "login",
-//     message: "User logged in successfully",
-//     userId: user._id,
-//     time: new Date().toISOString(),
-//   });
 
   return {
     user,
@@ -70,4 +61,34 @@ const loginUser = async ({ email, password }, res) => {
   };
 };
 
-module.exports = { registerUser, loginUser };
+const getAllUsers = async () => {
+  return await User.find().populate("roleId", "title").select("-password");
+};
+
+const getUserById = async (id) => {
+  const user = await User.findById(id).populate("roleId", "title").select("-password");
+  if (!user) throw new Error("User not found");
+  return user;
+};
+
+const updateUser = async (id, updateData) => {
+  if (updateData.password) delete updateData.password;
+
+  const updated = await User.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  })
+    .populate("roleId", "title")
+    .select("-password");
+
+  if (!updated) throw new Error("User not found or update failed");
+  return updated;
+};
+
+const deleteUser = async (id) => {
+  const deleted = await User.findByIdAndDelete(id).select("-password");
+  if (!deleted) throw new Error("User not found or already deleted");
+  return deleted;
+};
+
+module.exports = { registerUser, loginUser ,getAllUsers,getUserById,updateUser,deleteUser};
